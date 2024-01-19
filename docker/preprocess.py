@@ -13,23 +13,28 @@ def preprocess(data_path,save_path):
 
     num = 1
 
-    for index, dir in enumerate(dir_list):
+    for index, item_dir in enumerate(dir_list):
         
         # Skip if the directory contains this file (Brats2021 dataset specific)
-        if dir == '.DS_Store':
+        if item_dir == '.DS_Store':
             continue
 
         print(f"{index} / {len(dir_list)}")
 
-        patient_path = os.path.join(data_path, dir)
+        patient_path = os.path.join(data_path, item_dir)
 
+        skip = False
         model_data = {}
         for model in modalities:
-            filename = dir + "_" + model + ".nii"
+            filename = item_dir + "_" + model + ".nii"
             file_path = os.path.join(patient_path, filename)
+            if not os.path.exists(file_path):
+                skip = True
+                continue
             data = nibabel.load(file_path).get_fdata()
             model_data[model] = data
-
+        if skip:
+            continue
         for i in range(80, 129):
             file_num = str(num).zfill(6)
             save_slice_path = os.path.join(save_path, file_num)
@@ -37,7 +42,7 @@ def preprocess(data_path,save_path):
                 os.mkdir(save_slice_path)
 
             for model in modalities:
-                file_name = dir + "_" + model + "_" + str(i).zfill(3) + ".nii.gz"
+                file_name = item_dir + "_" + model + "_" + str(i).zfill(3) + ".nii.gz"
 
                 save_model_path = os.path.join(save_slice_path, file_name)
 
@@ -62,7 +67,7 @@ def preprocess(data_path,save_path):
             num += 1
 
 
-def split_data():
+def split_data(save_path):
     # Set paths and directory names
     training_path = os.path.join(save_path, "training")
     testing_path = os.path.join(save_path, "testing")
