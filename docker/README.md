@@ -10,6 +10,7 @@ docker build -t pangyuteng/diffusion-anomaly .
 docker push pangyuteng/diffusion-anomaly
 
 docker run -it --network=host -u $(id -u):$(id -g) -v /mnt:/mnt -w $PWD pangyuteng/diffusion-anomaly bash
+docker run -it  --gpus '"device=0"' --network=host -u $(id -u):$(id -g) -v /mnt:/mnt -w $PWD pangyuteng/diffusion-anomaly bash
 
 python preprocess.py \
     /mnt/hd2/data/brats2020/BraTS2020_TrainingData/MICCAI_BraTS2020_TrainingData \
@@ -34,3 +35,11 @@ CUDA_VISIBLE_DEVICES=1 \
     python scripts/image_train.py \
     --data_dir /mnt/scratch/data/brats2020-diffusion-anomal/training \
     --dataset brats  $MODEL_FLAGS $DIFFUSION_FLAGS $TRAIN_FLAGS
+
++ in `scripts/classifier_sample_known.py`, line 46 , set `test_flag` to False.
+# ds = BRATSDataset(args.data_dir)# test_flag=True)
+
+python scripts/classifier_sample_known.py \
+    --data_dir /mnt/scratch/data/brats2020-diffusion-anomal/testing/018025 \
+    --model_path ./results/brats2update020000.pt --classifier_path ./results/modelbratsclass125000.pt \
+    --dataset brats --classifier_scale 100 --noise_level 500 $MODEL_FLAGS $DIFFUSION_FLAGS $CLASSIFIER_FLAGS $SAMPLE_FLAGS 
